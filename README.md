@@ -3,15 +3,15 @@
 Streamlit tool that results the **Timeframe Both Teams To Score** market for men's
 college basketball, live from ESPN play-by-play.
 
-- One-minute windows for each 20-minute half: `19:59-19:00`, `18:59-18:00`, ... `0:59-0:00`.
-- Both halves side by side; overtimes (5 minutes, `4:59-4:00` ... `0:59-0:00`) appear below when reached.
+- One-minute windows for each 20-minute half: `20:00-19:00`, `18:59-18:00`, ... `0:59-0:00`.
+- Both halves side by side; overtimes (5 minutes, `5:00-4:00` ... `0:59-0:00`) appear below when reached.
 - **Yes**: both teams scored (field goal or free throw) inside the window.
   **No**: window complete and both teams did not score. **-**: not reached / in progress.
-- A window is labelled lower-bound inclusive: a score at exactly 19:00 belongs to `19:59-19:00`.
-  The opening 20:00 is folded into the first window. Set
-  `OPENING_WINDOW_FROM_PERIOD_START = True` in `app.py` to label that row `20:00-19:00` instead.
+- A window is labelled lower-bound inclusive: a score at exactly 19:00 belongs to `20:00-19:00`.
+  The first row of each period starts at the period start (20:00, or 5:00 in OT). Set
+  `OPENING_WINDOW_FROM_PERIOD_START = False` in `app.py` to label it `19:59-19:00`, NBA style.
 - A window only goes **No** once the clock has gone *below* its lower bound, so free throws
-  at a stoppage on exactly 19:00 still count for `19:59-19:00`.
+  at a stoppage on exactly 19:00 still count for `20:00-19:00`.
 - The highlighted row is the window the clock is in. **Invert** flips row order.
 
 Logic is ported from the NBA Live Market Tracker's timeframe table; only the period

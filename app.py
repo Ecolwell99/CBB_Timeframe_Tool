@@ -5,8 +5,8 @@ CBB Timeframe Tool
 Internal tool for sportsbook traders / QC analysts.
 
 Results the Timeframe Both Teams To Score market for men's college basketball,
-one-minute windows per half: "19:59-19:00", "18:59-18:00", ... "0:59-0:00",
-plus five-minute overtimes ("4:59-4:00" ... "0:59-0:00") when a game goes there.
+one-minute windows per half: "20:00-19:00", "18:59-18:00", ... "0:59-0:00",
+plus five-minute overtimes ("5:00-4:00" ... "0:59-0:00") when a game goes there.
 
 The market logic is a port of the NBA Live Market Tracker's timeframe table
 (`timeframe_windows` / `window_index` / `timeframe_table` in
@@ -65,7 +65,7 @@ REGULATION_PERIODS = 2
 HALF_SECONDS = 1200
 OVERTIME_PERIOD_SECONDS = 300
 
-# Timeframe table ordering. "chronological" -> 19:59-19:00 first.
+# Timeframe table ordering. "chronological" -> 20:00-19:00 first.
 # "reverse" -> 0:59-0:00 first. The Invert button flips it per session.
 TIMEFRAME_ORDER = "chronological"
 
@@ -74,7 +74,7 @@ TIMEFRAME_ORDER = "chronological"
 # this only changes what the first row SAYS.
 #   False -> "19:59-19:00"  (matches the NBA tool's "11:59-11:00")
 #   True  -> "20:00-19:00"
-OPENING_WINDOW_FROM_PERIOD_START = False
+OPENING_WINDOW_FROM_PERIOD_START = True
 
 # Cooldown after an HTTP 429: skip this many refresh ticks before polling again,
 # as the NHL / NFL / MLB / NBA tools all do.
@@ -553,8 +553,8 @@ def timeframe_windows(period: int) -> list[tuple[str, int, int]]:
     """One-minute windows for a period as (label, high_seconds, low_seconds).
 
     A window covers game clock in [low, high) and is labelled lower-bound
-    inclusive: "19:59-19:00", "18:59-18:00", ... "0:59-0:00". A score at exactly
-    19:00 belongs to "19:59-19:00". The opening 20:00 itself is folded into the
+    inclusive: "20:00-19:00" (see below), "18:59-18:00", ... "0:59-0:00". A score at exactly
+    19:00 belongs to the first window. The opening 20:00 itself is folded into the
     first window (see `window_index`), and OPENING_WINDOW_FROM_PERIOD_START
     relabels that first row "20:00-19:00".
     """
@@ -571,7 +571,7 @@ def timeframe_windows(period: int) -> list[tuple[str, int, int]]:
 def window_index(clock_seconds: float | None, period: int) -> int | None:
     """Which one-minute window a clock reading belongs to.
 
-    20:00 (1200s) -> window 0 ("19:59-19:00")   folded into the first window
+    20:00 (1200s) -> window 0 ("20:00-19:00")   folded into the first window
     19:59 (1199s) -> window 0
     19:00 (1140s) -> window 0                   labels are lower-bound inclusive
     18:59 (1139s) -> window 1 ("18:59-18:00")
@@ -638,7 +638,7 @@ def timeframe_table(events: Sequence[GameEvent], period: int, away_id: str, home
     for idx, (label, _high, low) in enumerate(windows):
         both = away_id in scored[idx] and home_id in scored[idx]
         # Complete only once the clock has run PAST the lower bound: a stoppage at
-        # exactly 19:00 can still produce free throws for "19:59-19:00".
+        # exactly 19:00 can still produce free throws for the first window.
         complete = finished or (lowest is not None and lowest < low)
         if both:
             verdict = "Yes"
@@ -820,7 +820,7 @@ def render_timeframe(rows: Sequence[dict], current_label: str = "") -> None:
 
 
 def toggle_tf_order() -> None:
-    """Flip every timeframe table between 19:59-19:00 first and 0:59-0:00 first."""
+    """Flip every timeframe table between 20:00-19:00 first and 0:59-0:00 first."""
     st.session_state.tf_reversed = not st.session_state.tf_reversed
 
 
